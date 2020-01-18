@@ -29,7 +29,7 @@ func main() {
 	transport.Transport = NewCacheHeadersTransport()
 	proxy.Transport = transport
 
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	http.HandleFunc("/api", func(w http.ResponseWriter, req *http.Request) {
 		req.Host = req.URL.Host
 		proxy.ServeHTTP(w, req)
 	})
