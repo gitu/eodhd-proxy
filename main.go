@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gregjones/httpcache"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -9,10 +8,13 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/go-http-utils/logger"
+	"github.com/gregjones/httpcache"
+	"sourcegraph.com/sourcegraph/s3cache"
 )
 
 func main() {
-
 	port := os.Getenv("PORT")
 
 	if port == "" {
@@ -25,16 +27,23 @@ func main() {
 	}
 	proxy := httputil.NewSingleHostReverseProxy(target)
 
-	transport := httpcache.NewTransport(httpcache.NewMemoryCache())
+	var cache httpcache.Cache
+	cache = httpcache.NewMemoryCache()
+	if os.Getenv("AWS_BUCKET") != "" {
+		cache = s3cache.New(os.Getenv("AWS_BUCKET"))
+	}
+
+	transport := httpcache.NewTransport(cache)
 	transport.Transport = NewCacheHeadersTransport()
 	proxy.Transport = transport
 
-	http.HandleFunc("/api", func(w http.ResponseWriter, req *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/api/", func(res http.ResponseWriter, req *http.Request) {
 		req.Host = req.URL.Host
-		proxy.ServeHTTP(w, req)
+		proxy.ServeHTTP(res, req)
 	})
 
-	err = http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(":"+port, logger.Handler(mux, os.Stdout, logger.CommonLoggerType))
 	if err != nil {
 		panic(err)
 	}
@@ -57,8 +66,7 @@ func (e *CacheHeadersTransport) RoundTrip(req *http.Request) (resp *http.Respons
 	}
 	if resp.StatusCode == 200 {
 		info := overWriteCacheControl(req, resp)
-
-		log.Printf("%40s: %20s - %s\n", req.URL.Path, info, req.Header.Get("cache-control"))
+		log.Printf("%40s: %20s - %s\n", req.URL.Path, info, resp.Header.Get("cache-control"))
 	}
 	return resp, nil
 }
