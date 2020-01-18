@@ -6,11 +6,19 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
 
 func main() {
+
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8989"
+	}
+
 	target, err := url.Parse("https://eodhistoricaldata.com")
 	if err != nil {
 		log.Fatal(err)
@@ -26,7 +34,7 @@ func main() {
 		proxy.ServeHTTP(w, req)
 	})
 
-	err = http.ListenAndServe(":8989", nil)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		panic(err)
 	}
