@@ -87,7 +87,7 @@ func overWriteCacheControl(req *http.Request, resp *http.Response) string {
 }
 
 var singleDay = []string{"/exchanges/"}
-var multiDay = []string{"/bulk-fundamentals/", "/fundamentals/"}
+var multiDay = []string{"/bulk-fundamentals/", "/bond-fundamentals/", "/fundamentals/"}
 var olderDates = []string{"/eod-bulk-last-day/", "/eod-bulk-last-day/", "/eod/", "/div/", "/splits/"}
 
 func cacheMultipleDays(req *http.Request, resp *http.Response) bool {
