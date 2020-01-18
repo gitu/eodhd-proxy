@@ -1,4 +1,4 @@
-module api-call-protector
+module github.com/gitu/eodhd-proxy
 
 go 1.13
 
