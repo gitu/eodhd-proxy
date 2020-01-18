@@ -29,8 +29,10 @@ func main() {
 
 	var cache httpcache.Cache
 	cache = httpcache.NewMemoryCache()
-	if os.Getenv("AWS_BUCKET") != "" {
-		cache = s3cache.New(os.Getenv("AWS_BUCKET"))
+	awsBucket := os.Getenv("AWS_BUCKET")
+	if awsBucket != "" {
+		cache = s3cache.New(awsBucket)
+		log.Println("using bucket: ", awsBucket)
 	}
 
 	transport := httpcache.NewTransport(cache)
